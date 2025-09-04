@@ -1,0 +1,11 @@
+services:
+  rust-store-db:
+    container_name: rust-store
+    image: postgres:17
+    restart: no
+    env_file:
+      - ./.env
+    ports:
+      - "5436:5432"
+    volumes:
+      - $HOME/.rust-store/pg-dev-data:/var/lib/postgresql/data
