@@ -7,6 +7,7 @@ use std::{collections::HashMap, sync::Arc};
 pub struct VariantLoadKey {
     pub product_id: i32,
     pub columns: Vec<String>,
+    pub sku: Option<String>,
 }
 
 #[derive(Debug, Clone, sqlx::FromRow)]
@@ -71,23 +72,31 @@ impl Loader<VariantLoadKey> for VariantLoader {
         if keys.is_empty() {
             return Ok(HashMap::new());
         }
-        println!("I ran once only");
 
         // Use columns from the first key since they're the same for all keys in a single query
         let columns = &keys[0].columns;
         let product_ids: Vec<i32> = keys.iter().map(|k| k.product_id).collect();
 
         // Ensure required columns are included
-        let mut safe_columns = vec!["id", "product_id"];
+        let mut safe_columns = vec!["id", "sku", "product_id"];
         for col in columns {
             safe_columns.push(col)
         }
         safe_columns.dedup();
 
-        let sql = format!(
+        let mut sql = format!(
             "SELECT {} FROM product_variants WHERE product_id = ANY($1)",
             safe_columns.join(", ")
         );
+
+        let sku = &keys[0].sku;
+
+        match sku {
+            Some(sku) => {
+                sql = format!("{} AND sku = '{}'", sql, sku);
+            }
+            None => {}
+        };
 
         println!("{}", sql);
 

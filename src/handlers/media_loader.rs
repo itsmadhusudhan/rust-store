@@ -1,6 +1,6 @@
 use std::{collections::HashMap, sync::Arc};
 
-use async_graphql::{Object, SimpleObject, dataloader::Loader};
+use async_graphql::{SimpleObject, dataloader::Loader};
 use sqlx::{PgPool, Row, postgres::PgRow};
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]

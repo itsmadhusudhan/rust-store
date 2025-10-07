@@ -1,11 +1,9 @@
-use crate::data::DataStore;
-use crate::handlers::Mutation;
 use crate::handlers::media_loader::ProductMediaLoader;
 use crate::handlers::queries::QueryRoot;
 use crate::handlers::variant_loader::VariantLoader;
 use async_graphql::dataloader::DataLoader;
 use async_graphql::http::GraphiQLSource;
-use async_graphql::{EmptySubscription, Schema};
+use async_graphql::{EmptyMutation, EmptySubscription, Schema};
 use async_graphql_axum::{GraphQL, GraphQLRequest, GraphQLResponse};
 use axum::response::IntoResponse;
 use axum::{
@@ -19,14 +17,13 @@ use sqlx::{Pool, Postgres};
 use tower_http::cors::CorsLayer;
 
 /// GraphQL Schema type alias
-pub type ApiSchema = Schema<QueryRoot, Mutation, EmptySubscription>;
+pub type ApiSchema = Schema<QueryRoot, EmptyMutation, EmptySubscription>;
 
 /// Create and configure the GraphQL schema
 pub fn create_schema(pool: Pool<Postgres>) -> ApiSchema {
     let variant_loader = VariantLoader { pool: pool.clone() };
     let media_loader = ProductMediaLoader { pool: pool.clone() };
-    Schema::build(QueryRoot, Mutation, EmptySubscription)
-        .data(DataStore::new())
+    Schema::build(QueryRoot, EmptyMutation, EmptySubscription)
         .data(DataLoader::new(variant_loader, tokio::spawn))
         .data(DataLoader::new(media_loader, tokio::spawn))
         .data(pool)
@@ -119,13 +116,5 @@ pub fn print_server_info() {
     println!("  # Get product by ID");
     println!(
         "  query {{ product(id: \"1\") {{ id name description variants {{ sku price {{ amount currency }} }} }} }}"
-    );
-    println!("");
-    println!("  # Search products");
-    println!("  query {{ searchProducts(query: \"laptop\", limit: 5) {{ id name slug }} }}");
-    println!("");
-    println!("  # Create a new product");
-    println!(
-        "  mutation {{ createProduct(input: {{ name: \"New Product\", slug: \"new-product\", status: \"ACTIVE\" }}) {{ id name }} }}"
     );
 }
